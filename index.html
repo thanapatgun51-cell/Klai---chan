@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f766e">
+<title>ใกล้ฉัน — ค้นหาร้านค้าและบริการ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--green:#0f766e;--ink:#12212b;--muted:#64748b;--bg:#f3f7f7;--line:#dce7e7}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Thai",sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#0f766e,#115e59);color:white;padding:24px 16px 22px}
+.wrap{max-width:980px;margin:auto}h1{font-size:27px;margin:0 0 5px}header p{margin:0;color:#d9f4ef;font-size:14px}
+main{max-width:980px;margin:16px auto;padding:0 12px}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 5px 18px #1231}
+.searchrow{display:flex;gap:8px;margin-bottom:10px}input,select,button{font:inherit;border-radius:10px;min-height:44px}input,select{border:1px solid #cbd5e1;padding:10px;background:white;color:var(--ink)}input{min-width:0;flex:1}button{border:0;padding:10px 14px;background:var(--green);color:white;font-weight:700;cursor:pointer}button.secondary{background:#e6f4f1;color:#115e59}.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hint{font-size:12px;color:var(--muted);line-height:1.5;margin:10px 0 0}.status{font-size:13px;color:#334155;margin:10px 0;min-height:20px}.layout{display:grid;grid-template-columns:1fr;gap:14px}#map{height:300px;border-radius:12px;background:#e2e8f0}.results{display:grid;gap:10px}.result{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start}.emoji{font-size:25px}.result h3{font-size:16px;margin:0 0 4px}.result p{font-size:13px;color:var(--muted);margin:0 0 8px}.result a{color:var(--green);font-weight:700;text-decoration:none;font-size:13px}.tag{display:inline-block;background:#e6f4f1;color:#115e59;border-radius:99px;padding:3px 8px;font-size:11px;margin-bottom:5px}.adnote{background:#fff7e6;border:1px solid #f4d9a5;border-radius:12px;padding:12px;font-size:13px;color:#754c00}.empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed #cbd5e1;border-radius:12px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:12px 10px 28px}
+@media(min-width:720px){.layout{grid-template-columns:1fr 1fr}#map{height:430px}.filters{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>📍 ใกล้ฉัน</h1><p>ค้นหาร้านค้าและบริการใกล้ตัว — ทดลองใช้งานฟรี</p></div></header>
+<main>
+<section class="panel">
+ <div class="searchrow"><input id="place" placeholder="ค้นหาพื้นที่ เช่น อโศก, เชียงใหม่"><button id="placeBtn">ค้นหาพื้นที่</button></div>
+ <div class="searchrow"><input id="keyword" placeholder="ชื่อร้านหรือบริการ เช่น ร้านกาแฟ, ช่างไฟฟ้า"><button id="searchBtn">ค้นหาร้าน</button></div>
+ <div class="filters"><select id="category"><option value="all">ทุกประเภทร้าน</option><option value="restaurant">อาหารและเครื่องดื่ม</option><option value="shop">ร้านค้า</option><option value="convenience">ร้านสะดวกซื้อ</option><option value="repair">ซ่อมรถ/ซ่อมอุปกรณ์</option><option value="beauty">เสริมสวย</option><option value="health">สุขภาพและยา</option><option value="accommodation">ที่พัก</option></select><button class="secondary" id="nearBtn">◎ ใช้ตำแหน่งของฉัน</button></div>
+ <p class="hint">ตำแหน่งใช้เมื่อคุณกดอนุญาตเท่านั้น ข้อมูลร้านมาจาก OpenStreetMap และอาจมีไม่ครบทุกแห่ง</p>
+ <div class="status" id="status" role="status">เริ่มต้นด้วยการค้นหาพื้นที่ หรืออนุญาตให้ใช้ตำแหน่งของคุณ</div>
+</section>
+<div class="layout">
+ <section class="panel"><h2 style="font-size:18px;margin:0 0 10px">แผนที่</h2><div id="map"></div><p class="hint">แตะหมุดเพื่อดูชื่อร้าน แผนที่ต้องใช้อินเทอร์เน็ต</p></section>
+ <section class="panel"><h2 style="font-size:18px;margin:0 0 10px">ร้านที่ค้นพบ <span id="count"></span></h2><div class="results" id="results"><div class="empty">ยังไม่มีผลการค้นหา</div></div></section>
+</div>
+<section class="adnote">💡 พื้นที่โฆษณาร้านค้า (ตัวอย่าง): เมื่อเว็บไซต์มีผู้ใช้มากขึ้น สามารถเพิ่มระบบสมัครร้านและแพ็กเกจโปรโมตแบบเสียเงินได้ ต้องแสดงป้าย “โฆษณา” ให้ชัดเจน</section>
+</main>
+<footer>ใกล้ฉัน · ต้นแบบทดลอง · แผนที่ © OpenStreetMap contributors</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const map=L.map('map').setView([13.7563,100.5018],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+let markers=L.layerGroup().addTo(map), center={lat:13.7563,lon:100.5018}, loaded=[];
+const say=t=>$('status').textContent=t;
+const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function dist(a,b){const R=6371,rad=x=>x*Math.PI/180,d1=(b.lat-a.lat),d2=(b.lon-a.lon);const q=Math.sin(rad(d1)/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(rad(d2)/2)**2;return 2*R*Math.asin(Math.sqrt(q))}
+function tagFor(t){if(t.amenity==='restaurant'||t.amenity==='cafe'||t.amenity==='fast_food'||t.amenity==='bar')return ['restaurant','🍜','อาหารและเครื่องดื่ม'];if(t.shop==='convenience')return ['convenience','🛒','ร้านสะดวกซื้อ'];if(t.shop)return ['shop','🏪','ร้านค้า'];if(t.amenity==='pharmacy'||t.amenity==='clinic'||t.amenity==='doctors')return ['health','💊','สุขภาพและยา'];if(t.amenity==='car_repair'||t.shop==='car_repair'||t.shop==='mobile_phone')return ['repair','🛠️','ซ่อม/อุปกรณ์'];if(t.shop==='beauty'||t.amenity==='美容')return ['beauty','💇','เสริมสวย'];if(t.tourism==='hotel'||t.tourism==='guest_house')return ['accommodation','🛏️','ที่พัก'];return ['all','📍','ร้านค้า/บริการ']}
+function titleOf(e){return e.tags?.name||e.tags?.['name:th']||e.tags?.brand||e.tags?.operator||'ร้านไม่มีชื่อในฐานข้อมูล'}
+function addressOf(e){let t=e.tags||{};return [t['addr:subdistrict'],t['addr:district'],t['addr:city']||t['addr:province']].filter(Boolean).join(' ')||'ไม่มีข้อมูลที่อยู่'}
+function show(items){markers.clearLayers();$('results').innerHTML='';$('count').textContent='('+items.length+')';if(!items.length){$('results').innerHTML='<div class="empty">ไม่พบร้าน ลองเปลี่ยนคำค้นหาหรือขยายพื้นที่</div>';return}
+items.forEach(e=>{let lat=e.lat??e.center?.lat,lon=e.lon??e.center?.lon;if(!lat||!lon)return;let typ=tagFor(e.tags||{}),name=titleOf(e),d=dist(center,{lat,lon});let m=L.marker([lat,lon]).bindPopup('<b>'+esc(name)+'</b><br>'+esc(typ[2]));markers.addLayer(m);let el=document.createElement('article');el.className='result';el.innerHTML='<div class="emoji">'+typ[1]+'</div><div><span class="tag">'+esc(typ[2])+'</span><h3>'+esc(name)+'</h3><p>'+esc(addressOf(e))+'<br>ห่างประมาณ '+(d<1?Math.round(d*1000)+' เมตร':d.toFixed(1)+' กม.')+'</p><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat='+lat+'&mlon='+lon+'#map=18/'+lat+'/'+lon+'">เปิดแผนที่ ↗</a></div>';el.addEventListener('click',()=>{map.setView([lat,lon],17);m.openPopup()});$('results').appendChild(el)});if(items.length){let pts=items.map(e=>[e.lat??e.center?.lat,e.lon??e.center?.lon]).filter(p=>p[0]&&p[1]);if(pts.length)map.fitBounds(pts,{padding:[25,25],maxZoom:15})}}
+function matchesCategory(e){let c=$('category').value;if(c==='all')return true;return tagFor(e.tags||{})[0]===c}
+async function search(){let kw=$('keyword').value.trim().toLowerCase();say('กำลังค้นหาร้านใกล้พื้นที่ที่เลือก…');$('results').innerHTML='<div class="empty">กำลังค้นหา…</div>';let cat=$('category').value;let filter='';
+if(cat==='restaurant')filter='["amenity"~"restaurant|cafe|fast_food|bar"]';else if(cat==='shop')filter='["shop"]';else if(cat==='convenience')filter='["shop"="convenience"]';else if(cat==='repair')filter='["shop"~"car_repair|mobile_phone"]';else if(cat==='beauty')filter='["shop"="beauty"]';else if(cat==='health')filter='["amenity"~"pharmacy|clinic|doctors"]';else if(cat==='accommodation')filter='["tourism"~"hotel|guest_house"]';
+let query='[out:json][timeout:25];(node(around:5000,'+center.lat+','+center.lon+')'+filter+';way(around:5000,'+center.lat+','+center.lon+')'+filter+';);out center tags;';
+try{let r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:query});if(!r.ok)throw new Error('เซิร์ฟเวอร์แผนที่ตอบกลับไม่สำเร็จ');let data=await r.json();loaded=data.elements||[];let filtered=loaded.filter(matchesCategory).filter(e=>!kw||(titleOf(e)+' '+addressOf(e)+' '+Object.values(e.tags||{}).join(' ')).toLowerCase().includes(kw));filtered.sort((a,b)=>dist(center,{lat:a.lat??a.center?.lat,lon:a.lon??a.center?.lon})-dist(center,{lat:b.lat??b.center?.lat,lon:b.lon??b.center?.lon}));show(filtered.slice(0,60));say('ค้นหาเสร็จแล้ว · พบ '+filtered.length+' รายการที่ตรงกับคำค้น');}catch(err){$('results').innerHTML='<div class="empty">ค้นหาไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง หากยังไม่ได้ อาจเป็นเพราะเซิร์ฟเวอร์ข้อมูลมีคนใช้มาก</div>';say('เกิดปัญหา: '+err.message)}}
+async function geocode(){let q=$('place').value.trim();if(!q){say('พิมพ์ชื่อพื้นที่ก่อน เช่น อโศก หรือ เชียงใหม่');return}say('กำลังค้นหาพื้นที่…');try{let r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(q+', Thailand'));if(!r.ok)throw Error('ค้นหาพื้นที่ไม่สำเร็จ');let a=await r.json();if(!a.length)throw Error('ไม่พบพื้นที่นี้ ลองพิมพ์ชื่อใหม่');center={lat:+a[0].lat,lon:+a[0].lon};map.setView([center.lat,center.lon],14);say('เลือกพื้นที่: '+a[0].display_name);await search()}catch(e){say(e.message)}}
+$('searchBtn').addEventListener('click',search);$('placeBtn').addEventListener('click',geocode);$('place').addEventListener('keydown',e=>{if(e.key==='Enter')geocode()});$('keyword').addEventListener('keydown',e=>{if(e.key==='Enter')search()});$('category').addEventListener('change',()=>{if(loaded.length)show(loaded.filter(matchesCategory).filter(e=>!$('keyword').value.trim()||(titleOf(e)+' '+addressOf(e)).toLowerCase().includes($('keyword').value.trim().toLowerCase())))});$('nearBtn').addEventListener('click',()=>{if(!navigator.geolocation){say('เบราว์เซอร์นี้ไม่รองรับตำแหน่ง');return}say('กำลังขอตำแหน่งจากมือถือ…');navigator.geolocation.getCurrentPosition(async p=>{center={lat:p.coords.latitude,lon:p.coords.longitude};map.setView([center.lat,center.lon],14);say('ใช้ตำแหน่งของคุณแล้ว');await search()},e=>say('ใช้ตำแหน่งไม่ได้: อนุญาต Location ใน Chrome และเปิด GPS แล้วลองใหม่'),{enableHighAccuracy:true,timeout:12000})});
+</script>
+</body></html>
